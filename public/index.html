@@ -1,191 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
-
-    <script src="baremux/index.js" defer></script>
-    <script src="epoxy/index.js" defer></script>
-    <script src="uv/uv.bundle.js" defer></script>
-    <script src="uv/uv.config.js" defer></script>
-    <script src="register-sw.js" defer></script>
-    <script src="index.js" defer></script>
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>URL Iframe Example</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ultraviolet Proxy UI</title>
+  <link rel="icon" href="favicon.ico" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
 
-        #top-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 30px;
-            z-index: 1100;
-            background: #fff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 5px;
-        }
+    #top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 30px;
+      z-index: 1100;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 5px;
+    }
 
-        #left-bar {
-            display: flex;
-            align-items: center;
-        }
+    #left-bar {
+      display: flex;
+      align-items: center;
+    }
 
-        #proxy-img {
-            height: 25px;
-            width: auto;
-            margin-right: 10px;
-        }
+    #proxy-img {
+      height: 25px;
+      width: auto;
+      margin-right: 10px;
+    }
 
-        #beta-text {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-            margin-right: 10px;
-        }
+    #beta-text {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      margin-right: 10px;
+    }
 
-        #address-input {
-            width: 800px;
-            padding: 2px;
-            font-size: 16px;
-            margin-right: 4px;
-        }
+    #address-input {
+      width: 600px;
+      padding: 2px;
+      font-size: 16px;
+      margin-right: 4px;
+    }
 
-        #go-button,
-        #help-button {
-            padding: 2px 16px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-right: 4px;
-        }
+    button {
+      padding: 2px 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 4px;
+    }
 
-        #right-bar {
-            display: flex;
-            align-items: center;
-        }
+    #right-bar {
+      display: flex;
+      align-items: center;
+    }
 
-        #loading-img {
-            height: 25px;
-            width: auto;
-            display: none;
-        }
+    #loading-img {
+      height: 25px;
+      width: auto;
+      display: none;
+    }
 
-        #iframe-container {
-            position: fixed;
-            top: 30px;
-            left: 0;
-            width: 100%;
-            height: calc(100% - 30px);
-            z-index: 1000;
-        }
+    #iframe-container {
+      position: fixed;
+      top: 30px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 30px);
+      z-index: 1000;
+    }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-    </style>
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
 </head>
-
 <body>
-
-    <div id="top-bar">
-        <div id="left-bar">
-            <img id="proxy-img" src="Proxy.png" alt="Proxy Logo">
-            <div id="beta-text">BETA</div>
-            <input id="address-input" type="text" placeholder="Enter URL" />
-            <button id="go-button" type="button" onclick="go()">Go</button>
-            <button id="help-button" type="button" onclick="window.location.href='help.html'">Help</button>
-        </div>
-        <div id="right-bar">
-            <h3 id="status-text" style="padding: 5px">Ready</h3>
-            <img id="loading-img" src="proxyloading.svg" alt="Loading Animation">
-        </div>
+  <div id="top-bar">
+    <div id="left-bar">
+      <img id="proxy-img" src="Proxy.png" alt="Proxy Logo" />
+      <div id="beta-text">BETA</div>
+      <input id="address-input" type="text" placeholder="Enter URL" />
+      <button onclick="go()">Go</button>
+      <button onclick="goBack()">⟵</button>
+      <button onclick="goForward()">⟶</button>
+      <button onclick="refresh()">⟳</button>
+      <button onclick="location.href='help.html'">Help</button>
     </div>
-
-    <div id="iframe-container">
-        <iframe id="iframe"
-            sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-storage-access-by-user-activation"
-            data-tab-id="1" class="active"></iframe>
+    <div id="right-bar">
+      <h3 id="status-text" style="padding: 5px">Ready</h3>
+      <img id="loading-img" src="proxyloading.svg" alt="Loading Animation" />
     </div>
+  </div>
 
-    <!-- sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-storage-access-by-user-activation" -->
+  <div id="iframe-container">
+    <iframe
+      id="iframe"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-storage-access-by-user-activation"
+      data-tab-id="1"
+      class="active"
+    ></iframe>
+  </div>
 
-    <script>
-        // get status text
-        const statustext = document.getElementById("status-text");
-        // get base url of current site
-        var getUrl = window.location;
-        var baseUrl = getUrl.protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
+  <script src="/uv/uv.bundle.js" defer></script>
+  <script src="/uv/uv.config.js" defer></script>
 
-        function encodeXor(input) {
-            if (!input) return input;
-            return encodeURIComponent(
-                input
-                    .split("")
-                    .map((char, ind) =>
-                        ind % 2 ? String.fromCharCode(char.charCodeAt(0) ^ 2) : char
-                    )
-                    .join("")
-            );
+  <script>
+    let historyStack = [];
+    let historyIndex = -1;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const iframe = document.getElementById("iframe");
+      const inputField = document.getElementById("address-input");
+      const loadingImg = document.getElementById("loading-img");
+      const statusText = document.getElementById("status-text");
+
+      // Wait for UV config
+      await new Promise((resolve) => {
+        const interval = setInterval(() => {
+          if (window.__uv$config?.prefix) {
+            clearInterval(interval);
+            resolve();
+          }
+        }, 50);
+      });
+
+      // Register Service Worker
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("/uv/sw.js", { scope: __uv$config.prefix })
+          .then(() => console.log("UV Service Worker registered"))
+          .catch(err => console.error("SW registration failed:", err));
+      }
+
+      function showLoading() {
+        loadingImg.style.display = "block";
+        statusText.textContent = "Loading...";
+      }
+
+      function hideLoading() {
+        loadingImg.style.display = "none";
+        statusText.textContent = "Ready";
+      }
+
+      window.go = () => {
+        const rawUrl = inputField.value.trim();
+        if (!rawUrl) return;
+
+        const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+        const encoded = __uv$config.prefix + __uv$config.encodeUrl(url);
+        iframe.src = encoded;
+
+        // Update history stack
+        historyStack = historyStack.slice(0, historyIndex + 1);
+        historyStack.push(encoded);
+        historyIndex++;
+
+        showLoading();
+        inputField.value = "";
+      };
+
+      window.goBack = () => {
+        if (historyIndex > 0) {
+          historyIndex--;
+          iframe.src = historyStack[historyIndex];
+          showLoading();
         }
+      };
 
-        async function go() {
-            const inputField = document.getElementById("address-input");
-            let input = inputField.value.trim();
-            if (!input) return;
-
-            const url = input.startsWith("http") ? input : `https://${input}`;
-
-            document.getElementById("loading-img").style.display = "block";
-
-            try {
-                const response = await fetch(url, { method: "HEAD", mode: "no-cors" });
-                const encoded = encodeXor(url);
-                const finalUrl = `/a/${encoded}`;
-                displayIframe(finalUrl);
-                inputField.value = "";
-            } catch (err) {
-                console.error("Error checking URL:", err);
-                window.location.href = "error.html";
-            }
+      window.goForward = () => {
+        if (historyIndex < historyStack.length - 1) {
+          historyIndex++;
+          iframe.src = historyStack[historyIndex];
+          showLoading();
         }
+      };
 
-        function displayIframe(url) {
-            const iframe = document.getElementById("iframe");
-            iframe.src = url;
+      window.refresh = () => {
+        if (historyIndex >= 0) {
+          iframe.src = historyStack[historyIndex];
+          showLoading();
         }
+      };
 
-        function hideLoading() {
-            document.getElementById("loading-img").style.display = "none";
+      iframe.addEventListener("load", () => {
+        hideLoading();
+        try {
+          const currentUrl = new URL(iframe.contentWindow.location.href);
+          const decoded = __uv$config.decodeUrl(currentUrl.pathname.replace(__uv$config.prefix, ""));
+          inputField.value = decoded;
+        } catch (err) {
+          console.warn("Could not decode iframe URL:", err);
         }
+      });
 
-        function showLoading() {
-            document.getElementById("loading-img").style.display = "block";
-        }
+      inputField.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") go();
+      });
 
-        // disable right-clicking
-        document.addEventListener('contextmenu', function (e) {
-            e.preventDefault(); // Prevent right-click menu
-        });
-
-        // prevent links from opening in a new tab DOESNT WORK!!!!!
-        document.addEventListener('click', function (e) {
-            if (e.target.tagName === 'A' && e.target.target === '_blank') {
-                e.preventDefault();
-                const iframe = document.getElementById("iframe");
-                iframe.src = e.target.href; // Open link in iframe
-            }
-        });
-    </script>
-
+      document.addEventListener('contextmenu', e => e.preventDefault());
+    });
+  </script>
 </body>
-
 </html>
