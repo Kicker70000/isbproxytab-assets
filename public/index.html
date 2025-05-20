@@ -1,122 +1,192 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-    />
-    <title>Ultraviolet | Sophisticated Web Proxy</title>
-    <meta
-      name="description"
-      content="Ultraviolet is a highly sophisticated proxy used for evading internet censorship or accessing websites in a controlled sandbox using the power of service-workers. Unblock sites today!"
-    />
-    <meta
-      name="keywords"
-      content="proxy, web proxy, ultraviolet, service workers, unblock websites, unblock chromebook, free web proxy, proxy list, proxy sites, un block chromebook, online proxy, proxy server, proxysite, proxy youtube, bypass securly, bypass iboss, bypass lightspeed filter, holy unblocker, chromebooks, titanium network, unblock youtube, youtube proxy, unblocked youtube, youtube unblocked"
-    />
-    <meta
-      name="theme-color"
-      media="(prefers-color-scheme: dark)"
-      content="#434c5e"
-    />
-    <meta name="googlebot" content="index, follow, snippet" />
-    <link rel="shortcut icon" content="favicon.ico" />
-    <link rel="stylesheet" href="index.css" />
+<html lang="en">
+
     <script src="baremux/index.js" defer></script>
     <script src="epoxy/index.js" defer></script>
     <script src="uv/uv.bundle.js" defer></script>
     <script src="uv/uv.config.js" defer></script>
     <script src="register-sw.js" defer></script>
-    <script src="search.js" defer></script>
     <script src="index.js" defer></script>
     <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "What is Ultraviolet (Web Proxy)?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Highly sophisticated proxy used for evading internet censorship or accessing websites in a controlled sandbox using the power of service-workers and more!"
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL Iframe Example</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            z-index: 1100;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5px;
+        }
+
+        #left-bar {
+            display: flex;
+            align-items: center;
+        }
+
+        #proxy-img {
+            height: 25px;
+            width: auto;
+            margin-right: 10px;
+        }
+
+        #beta-text {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        #address-input {
+            width: 800px;
+            padding: 2px;
+            font-size: 16px;
+            margin-right: 4px;
+        }
+
+        #go-button,
+        #help-button {
+            padding: 2px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+
+        #right-bar {
+            display: flex;
+            align-items: center;
+        }
+
+        #loading-img {
+            height: 25px;
+            width: auto;
+            display: none;
+        }
+
+        #iframe-container {
+            position: fixed;
+            top: 30px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 30px);
+            z-index: 1000;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="top-bar">
+        <div id="left-bar">
+            <img id="proxy-img" src="Proxy.png" alt="Proxy Logo">
+            <div id="beta-text">BETA</div>
+            <input id="address-input" type="text" placeholder="Enter URL" />
+            <button id="go-button" type="button" onclick="go()">Go</button>
+            <button id="help-button" type="button" onclick="window.location.href='help.html'">Help</button>
+        </div>
+        <div id="right-bar">
+            <h3 id="status-text" style="padding: 5px">Ready</h3>
+            <img id="loading-img" src="proxyloading.svg" alt="Loading Animation">
+        </div>
+    </div>
+
+    <div id="iframe-container">
+        <iframe id="iframe"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-storage-access-by-user-activation"
+            data-tab-id="1" class="active"></iframe>
+    </div>
+
+    <!-- sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-storage-access-by-user-activation" -->
+
+    <script>
+        // get status text
+        const statustext = document.getElementById("status-text");
+        // get base url of current site
+        var getUrl = window.location;
+        var baseUrl = getUrl.protocol + "//" + getUrl.host + "/" + getUrl.pathname.split('/')[1];
+
+        function encodeXor(input) {
+            if (!input) return input;
+            return encodeURIComponent(
+                input
+                    .split("")
+                    .map((char, ind) =>
+                        ind % 2 ? String.fromCharCode(char.charCodeAt(0) ^ 2) : char
+                    )
+                    .join("")
+            );
+        }
+
+        async function go() {
+            const inputField = document.getElementById("address-input");
+            let input = inputField.value.trim();
+            if (!input) return;
+
+            const url = input.startsWith("http") ? input : `https://${input}`;
+
+            document.getElementById("loading-img").style.display = "block";
+
+            try {
+                const response = await fetch(url, { method: "HEAD", mode: "no-cors" });
+                const encoded = encodeXor(url);
+                const finalUrl = `/a/${encoded}`;
+                displayIframe(finalUrl);
+                inputField.value = "";
+            } catch (err) {
+                console.error("Error checking URL:", err);
+                window.location.href = "error.html";
             }
-          },
-          {
-            "@type": "Question",
-            "name": "How do I unblock sites using Ultraviolet?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Simply head to an official site featuring Ultraviolet such as Holy Unblocker or Incognito! You can also self-host Ultraviolet on your own web server for maximum privacy."
+        }
+
+        function displayIframe(url) {
+            const iframe = document.getElementById("iframe");
+            iframe.src = url;
+        }
+
+        function hideLoading() {
+            document.getElementById("loading-img").style.display = "none";
+        }
+
+        function showLoading() {
+            document.getElementById("loading-img").style.display = "block";
+        }
+
+        // disable right-clicking
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault(); // Prevent right-click menu
+        });
+
+        // prevent links from opening in a new tab DOESNT WORK!!!!!
+        document.addEventListener('click', function (e) {
+            if (e.target.tagName === 'A' && e.target.target === '_blank') {
+                e.preventDefault();
+                const iframe = document.getElementById("iframe");
+                iframe.src = e.target.href; // Open link in iframe
             }
-          },
-          {
-            "@type": "Question",
-            "name": "What if Ultraviolet is blocked or not working?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Join the Titanium Network Discord at discord.gg/unblock!"
-            }
-          }
-        ]
-      }
+        });
     </script>
-  </head>
 
-  <body>
-    <div
-      title="Ultraviolet Logo"
-      class="flex-center logo-wrapper header-center"
-    >
-      <img class="logo" src="uv.png" alt="Ultraviolet" />
-      <h1>Ultraviolet | TN</h1>
-    </div>
-    <div class="flex-center desc left-margin">
-      <p>
-        Ultraviolet is highly sophisticated proxy used for evading internet
-        censorship.
-      </p>
-    </div>
+</body>
 
-    <form id="uv-form" class="flex-center">
-      <input
-        id="uv-search-engine"
-        value="https://www.google.com/search?q=%s"
-        type="hidden"
-      />
-      <input id="uv-address" type="text" placeholder="Search the web freely" />
-    </form>
-    <div class="desc left-margin">
-      <p id="uv-error"></p>
-      <pre id="uv-error-code"></pre>
-    </div>
-    <footer>
-      <div>
-        <a
-          title="The TitaniumNetwork GitHub organization"
-          href="https://github.com/titaniumnetwork-dev"
-          >TitaniumNetwork</a
-        >
-        <a title="The TitaniumNetwork Discord" href="https://discord.gg/unblock"
-          >Discord</a
-        >
-        <a
-          title="The TompHTTP GitHub organization"
-          href="https://github.com/tomphttp"
-          >TompHTTP</a
-        >
-        <a
-          title="The official deployment repository for Ultraviolet"
-          href="https://github.com/titaniumnetwork-dev/Ultraviolet-App"
-          >GitHub</a
-        >
-        <a title="License information" href="credits.html">Credits</a>
-      </div>
-      <div>
-        <span>Ultraviolet &copy; TN 2023</span>
-      </div>
-    </footer>
-    <iframe style="display: none;" id="uv-frame"></iframe>
-  </body>
 </html>
