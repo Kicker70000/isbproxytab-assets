@@ -122,23 +122,37 @@
       const loadingImg = document.getElementById("loading-img");
       const statusText = document.getElementById("status-text");
 
-      // Wait for UV config
-      await new Promise((resolve) => {
-        const interval = setInterval(() => {
-          if (window.__uv$config?.prefix) {
-            clearInterval(interval);
-            resolve();
-          }
-        }, 50);
-      });
+// from uv-static index.js
+const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
 
-      // Register Service Worker
-      if ("serviceWorker" in navigator) {
-		navigator.serviceWorker.register('/uv/sw.js', { scope: '/uv/' })
-			.then(() => console.log('Service Worker registered'))
-			.catch(err => console.error('Service Worker registration failed:', err));
-      }
+form.addEventListener("submit", async (event) => {
+	event.preventDefault();
 
+	try {
+		await registerSW();
+	} catch (err) {
+		error.textContent = "Failed to register service worker.";
+		errorCode.textContent = err.toString();
+		throw err;
+	}
+	
+      window.go = () => {
+        const rawUrl = inputField.value.trim();
+        if (!rawUrl) return;
+
+        const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+
+	let frame = document.getElementById("iframe");
+	frame.style.display = "block";
+	let wispUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/wisp/";
+	if (await connection.getTransport() !== "/epoxy/index.mjs") {
+		await connection.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
+	}
+	frame.src = __uv$config.prefix + __uv$config.encodeUrl(url);
+});
+
+
+      //loading animation
       function showLoading() {
         loadingImg.style.display = "block";
         statusText.textContent = "Loading...";
@@ -148,14 +162,6 @@
         loadingImg.style.display = "none";
         statusText.textContent = "Ready";
       }
-
-      window.go = () => {
-        const rawUrl = inputField.value.trim();
-        if (!rawUrl) return;
-
-        const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
-        const encoded = __uv$config.prefix + __uv$config.encodeUrl(url);
-        iframe.src = encoded;
 
         // Update history stack
         historyStack = historyStack.slice(0, historyIndex + 1);
