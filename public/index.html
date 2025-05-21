@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ultraviolet Proxy UI</title>
-  <link rel="icon" href="favicon.ico" />
+  <title>Proxy | Ultraviolet</title>
   <style>
     body {
       margin: 0;
@@ -45,14 +45,15 @@
     }
 
     #address-input {
-      width: 600px;
+      width: 800px;
       padding: 2px;
       font-size: 16px;
       margin-right: 4px;
     }
 
-    button {
-      padding: 2px 10px;
+    #go-button,
+    #help-button {
+      padding: 2px 16px;
       font-size: 16px;
       cursor: pointer;
       margin-right: 4px;
@@ -84,135 +85,104 @@
       border: none;
     }
   </style>
+
+  <!-- UV Core Scripts -->
+  <script src="uv/uv.bundle.js" defer></script>
+  <script src="uv/uv.config.js" defer></script>
+  <script src="register-sw.js" defer></script>
 </head>
+
 <body>
+
+  <!-- Top Navigation Bar -->
   <div id="top-bar">
     <div id="left-bar">
-      <img id="proxy-img" src="Proxy.png" alt="Proxy Logo" />
+      <img id="proxy-img" src="/images/proxy.png" alt="Proxy Logo" />
       <div id="beta-text">BETA</div>
       <input id="address-input" type="text" placeholder="Enter URL" />
-      <button onclick="go()">Go</button>
-      <button onclick="goBack()">⟵</button>
-      <button onclick="goForward()">⟶</button>
-      <button onclick="refresh()">⟳</button>
-      <button onclick="location.href='help.html'">Help</button>
+      <button id="go-button" type="button">Go</button>
+      <button id="help-button" type="button" onclick="location.href='help.html'">Help</button>
     </div>
     <div id="right-bar">
       <h3 id="status-text" style="padding: 5px">Ready</h3>
-      <img id="loading-img" src="proxyloading.svg" alt="Loading Animation" />
+      <img id="loading-img" src="proxyloading.svg" alt="Loading Animation">
     </div>
   </div>
 
+  <!-- Ultraviolet Iframe -->
   <div id="iframe-container">
-    <iframe
-      id="iframe"
-    ></iframe>
+    <iframe id="uv-frame" style="display: none;"></iframe>
   </div>
 
-  <script src="/uv/uv.bundle.js" defer></script>
-  <script src="/uv/uv.config.js" defer></script>
-
   <script>
-    let historyStack = [];
-    let historyIndex = -1;
+    // Elements
+    const input = document.getElementById("address-input");
+    const goButton = document.getElementById("go-button");
+    const frame = document.getElementById("uv-frame");
+    const loadingImg = document.getElementById("loading-img");
+    const statusText = document.getElementById("status-text");
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      const iframe = document.getElementById("iframe");
-      const inputField = document.getElementById("address-input");
-      const loadingImg = document.getElementById("loading-img");
-      const statusText = document.getElementById("status-text");
+    // Show loading animation
+    function showLoading() {
+      loadingImg.style.display = "block";
+      statusText.textContent = "Loading...";
+    }
 
-// from uv-static index.js
-function go() {
-const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
+    // Hide loading animation
+    function hideLoading() {
+      loadingImg.style.display = "none";
+      statusText.textContent = "Ready";
+    }
 
-form.addEventListener("submit", async (event) => {
-	event.preventDefault();
-
-	try {
-		await registerSW();
-	} catch (err) {
-		error.textContent = "Failed to register service worker.";
-		errorCode.textContent = err.toString();
-		throw err;
-	}
-	
-      window.go = () => {
-        const rawUrl = inputField.value.trim();
-        if (!rawUrl) return;
-
-        const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
-
-	let frame = document.getElementById("iframe");
-	frame.style.display = "block";
-	let wispUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/wisp/";
-	if (await connection.getTransport() !== "/epoxy/index.mjs") {
-		await connection.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
-	}
-	frame.src = __uv$config.prefix + __uv$config.encodeUrl(url);
-});
-}
-
-      //loading animation
-      function showLoading() {
-        loadingImg.style.display = "block";
-        statusText.textContent = "Loading...";
+    // Register the UV service worker
+    async function registerSW() {
+      try {
+        await navigator.serviceWorker.register("register-sw.js", {
+          scope: __uv$config.prefix
+        });
+      } catch (err) {
+        console.error("Service worker registration failed:", err);
       }
+    }
 
-      function hideLoading() {
-        loadingImg.style.display = "none";
-        statusText.textContent = "Ready";
-      }
+    // Handles form submission to proxy a URL
+    async function proxyGo() {
+      const rawUrl = input.value.trim();
+      if (!rawUrl) return;
 
-        // Update history stack
-        historyStack = historyStack.slice(0, historyIndex + 1);
-        historyStack.push(encoded);
-        historyIndex++;
+      await registerSW();
 
-        showLoading();
-        inputField.value = "";
-      };
+      showLoading();
 
-      window.goBack = () => {
-        if (historyIndex > 0) {
-          historyIndex--;
-          iframe.src = historyStack[historyIndex];
-          showLoading();
-        }
-      };
+      const url = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+      const encodedUrl = __uv$config.encodeUrl(url);
+      const proxyUrl = __uv$config.prefix + encodedUrl;
 
-      window.goForward = () => {
-        if (historyIndex < historyStack.length - 1) {
-          historyIndex++;
-          iframe.src = historyStack[historyIndex];
-          showLoading();
-        }
-      };
+      // Load into iframe
+      frame.src = proxyUrl;
+      frame.style.display = "block";
 
-      window.refresh = () => {
-        if (historyIndex >= 0) {
-          iframe.src = historyStack[historyIndex];
-          showLoading();
-        }
-      };
+      // Update browser address bar (optional, not full navigation)
+      history.pushState({}, "", `/service/${btoa(url)}`);
 
-      iframe.addEventListener("load", () => {
-        hideLoading();
-        try {
-          const currentUrl = new URL(iframe.contentWindow.location.href);
-          const decoded = __uv$config.decodeUrl(currentUrl.pathname.replace(__uv$config.prefix, ""));
-          inputField.value = decoded;
-        } catch (err) {
-          console.warn("Could not decode iframe URL:", err);
-        }
-      });
+      input.value = "";
+    }
 
-      inputField.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") go();
-      });
+    // Go button handler
+    goButton.addEventListener("click", proxyGo);
 
-      document.addEventListener('contextmenu', e => e.preventDefault());
+    // Iframe onload to hide loading animation
+    frame.onload = hideLoading;
+
+    // Optional: support enter key
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") proxyGo();
     });
+
+    // Disable right-click context menu
+    document.addEventListener("contextmenu", (e) => e.preventDefault());
   </script>
+
 </body>
+
 </html>
