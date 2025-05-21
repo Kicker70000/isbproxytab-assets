@@ -123,6 +123,7 @@
       const statusText = document.getElementById("status-text");
 
 // from uv-static index.js
+function go() {
 const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
 
 form.addEventListener("submit", async (event) => {
@@ -150,7 +151,7 @@ form.addEventListener("submit", async (event) => {
 	}
 	frame.src = __uv$config.prefix + __uv$config.encodeUrl(url);
 });
-
+}
 
       //loading animation
       function showLoading() {
