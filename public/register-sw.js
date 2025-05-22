@@ -7,7 +7,7 @@ const stockSW = "/uv/sw.js";
 /**
  * List of hostnames that are allowed to run serviceworkers on http://
  */
-const swAllowedHostnames = ["localhost", "127.0.0.1", "friendly-system-pj7wqp96wgvg3v6v-8080.app.github.dev"];
+const swAllowedHostnames = ["localhost", "127.0.0.1",];
 
 /**
  * Global util
@@ -25,6 +25,6 @@ async function registerSW() {
   }
 
   await navigator.serviceWorker.register(stockSW, {
-	  scope: '/uv/'
+	  scope: '/uv/*'
   });
 }
