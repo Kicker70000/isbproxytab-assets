@@ -38,7 +38,7 @@
             position: fixed; top: 30px; left: 0;
             width: 100%; height: calc(100% - 30px); z-index: 1000;
         }
-        iframe { width: 100%; height: 100%; border: none; }
+        uv-frame { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 
@@ -61,60 +61,53 @@
 
     <!-- Iframe Container -->
     <div id="iframe-container">
-        <iframe id="iframe" sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-storage-access-by-user-activation" data-tab-id="1" class="active" onload="onIframeLoad()"></iframe>
+        <iframe id="uv-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-storage-access-by-user-activation" data-tab-id="1" class="active" onload="onIframeLoad()"></iframe>
     </div>
 
     <script>
-        // Service worker registration
-        async function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                try {
-                    await registerSW(); // defined in register-sw.js
-                    console.log('Service worker registered');
-                } catch (err) {
-                    console.error('SW registration failed:', err);
-                }
-            }
-        }
-
-        // XOR-encodes every second character of the input
-        function encodeXor(input) {
-            if (!input) return input;
-            return encodeURIComponent(
-                input.split('').map((char, ind) => ind % 2 ?
-                    String.fromCharCode(char.charCodeAt(0) ^ 2) : char
-                ).join('')
-            );
-        }
-
-        // Triggered by Go button: encodes URL, updates iframe and URL hash
+	const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
+        // Triggered by Go button: encodes URL, updates iframe and URL hash (not susceptible to sql injection trust me bro)
         function go() {
-            const inputField = document.getElementById('address-input');
+		
+		    const inputField = document.getElementById('address-input');
             let raw = inputField.value.trim();
             if (!raw) return;
+		
+			// ensure ServiceWorker is working like a serviceWORKER should do (bruh i got so frustrated when it didnt work) 
+			try {
+				await registerSW();
+					} catch (err) {
+					error.textContent = "Failed to register service worker.";
+					// errorCode.textContent = err.toString();
+					throw err;
+				}
+		
+			// Ensure URL scheme
+			const url = raw.startsWith('http') ? raw : `https://${raw}`;
+		
+			let frame = document.getElementById("uv-frame");
+				frame.style.display = "block";
+				let wispUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/wisp/";
+				if (await connection.getTransport() !== "/epoxy/index.mjs") {
+					await connection.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
+				}
+				const finalUrl = __uv$config.prefix + __uv$config.encodeUrl(url);
+				displayIframe(finalUrl);
+				window.location.hash = encoded;
 
-            // Ensure URL scheme
-            const url = raw.startsWith('http') ? raw : `https://${raw}`;
 
             // Show loading
             showLoading();
             setStatus('Loading...');
 
-            // Encode and build proxy URL
-            const encoded = __uv$config.encodeUrl(url);
-            const finalUrl = __uv$config.prefix + encoded;
-
-            // Update iframe and address bar hash
-            displayIframe(finalUrl);
-            window.location.hash = encoded;
 
             // Clear input
             inputField.value = '';
-        }
+        } // <--- Few! we exited the unreliable zone!
 
         // Sets iframe src
         function displayIframe(url) {
-            document.getElementById('iframe').src = url;
+            document.getElementById('uv-frame').src = url;
         }
 
         // Hides loading animation and updates status
