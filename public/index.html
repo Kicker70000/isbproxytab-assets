@@ -122,14 +122,6 @@
 	function onIframeLoad() {
 		hideLoading();
 		setStatus('Ready');
-		// sync address bar to the iframe’s current URL
-		try {
-			const current = document.getElementById('uv-frame').contentWindow.location.href;
-			document.getElementById('address-input').value = current;
-		} catch (e) {
-			// fallback if any issue reading href
-			document.getElementById('address-input').value = document.getElementById('uv-frame').src;
-		}
 	}
 		
 	// Back Button
