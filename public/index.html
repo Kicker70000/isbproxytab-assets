@@ -65,10 +65,10 @@
     </div>
 
     <script>
-	const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
+	
         // Triggered by Go button: encodes URL, updates iframe and URL hash (not susceptible to sql injection trust me bro)
         function go() {
-		
+		const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
 		    const inputField = document.getElementById('address-input');
             let raw = inputField.value.trim();
             if (!raw) return;
