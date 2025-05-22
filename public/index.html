@@ -109,9 +109,13 @@
         showLoading();
         setStatus('Loading... (status kinda broken rn ^_^)');
 
-
         // Clear input
         inputField.value = '';
+		
+		// Sets iframe src
+        function displayIframe(url) {
+            document.getElementById('uv-frame').src = url;
+        }
     } // <--- Few! we exited the unreliable zone!
 
 	// When iFrame is finished loading
