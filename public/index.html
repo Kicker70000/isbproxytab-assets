@@ -38,7 +38,7 @@
             position: fixed; top: 30px; left: 0;
             width: 100%; height: calc(100% - 30px); z-index: 1000;
         }
-        uv-frame { width: 100%; height: 100%; border: none; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 
@@ -75,7 +75,7 @@
 		
 			// ensure ServiceWorker is working like a serviceWORKER should do (bruh i got so frustrated when it didnt work) 
 			try {
-				await registerSW();
+				registerSW();
 					} catch (err) {
 					error.textContent = "Failed to register service worker.";
 					// errorCode.textContent = err.toString();
