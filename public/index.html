@@ -93,7 +93,7 @@
 				}
 				const finalUrl = __uv$config.prefix + __uv$config.encodeUrl(url);
 				displayIframe(finalUrl);
-				window.location.hash = encoded;
+				// window.location.hash = encoded; //this was part of "Load from hash on startup"
 
 
             // Show loading
@@ -132,14 +132,14 @@
         }
 
         // Load from hash on startup
-        window.addEventListener('load', () => {
-            registerServiceWorker();
-            const hash = window.location.hash.slice(1);
-            if (hash) {
-                const url = __uv$config.prefix + hash;
-                displayIframe(url);
-            }
-        });
+        //window.addEventListener('load', () => {
+        //    registerServiceWorker();
+        //    const hash = window.location.hash.slice(1);
+        //    if (hash) {
+        //        const url = __uv$config.prefix + hash;
+        //        displayIframe(url);
+        //    }
+        //});
 
         // Handle hash change (back/forward navigation)
         window.addEventListener('hashchange', () => {
