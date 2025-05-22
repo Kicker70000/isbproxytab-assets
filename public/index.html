@@ -2,150 +2,146 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ultraviolet Proxy Frontend</title>
-    <link rel="shortcut icon" href="favicon.ico" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ISBware</title>
+  <link rel="shortcut icon" href="favicon.png" />
 
-    <!-- Ultraviolet scripts -->
-    <script src="baremux/index.js" defer></script>
-    <script src="epoxy/index.js" defer></script>
-    <script src="uv/uv.bundle.js" defer></script>
-    <script src="uv/uv.config.js" defer></script>
-    <script src="register-sw.js" defer></script>
+  <!-- Ultraviolet scripts -->
+  <script src="baremux/index.js" defer></script>
+  <script src="epoxy/index.js" defer></script>
+  <script src="uv/uv.bundle.js" defer></script>
+  <script src="uv/uv.config.js" defer></script>
+  <script src="register-sw.js" defer></script>
 
-    <style>
-        body { margin: 0; font-family: Arial, sans-serif; }
-        #top-bar {
-            position: fixed; top: 0; left: 0; right: 0; height: 30px;
-            background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 5px; z-index: 1100;
-        }
-        #left-bar { display: flex; align-items: center; }
-        #proxy-img { height: 25px; width: auto; margin-right: 10px; }
-        #beta-text { font-size: 16px; font-weight: bold; color: #333; margin-right: 10px; }
-        #address-input {
-            width: 800px; padding: 2px; font-size: 16px; margin-right: 4px;
-        }
-        #go-button, #help-button {
-            padding: 2px 16px; font-size: 16px; cursor: pointer; margin-right: 4px;
-        }
-        #right-bar { display: flex; align-items: center; }
-        #status-text { margin: 0 10px; font-size: 14px; }
-        #loading-img { height: 25px; width: auto; display: none; }
-        #iframe-container {
-            position: fixed; top: 30px; left: 0;
-            width: 100%; height: calc(100% - 30px); z-index: 1000;
-        }
-        iframe { width: 100%; height: 100%; border: none; }
-    </style>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    #top-bar {
+      position: fixed; top: 0; left: 0; right: 0; height: 30px;
+      background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 5px; z-index: 1100;
+    }
+    #left-bar { display: flex; align-items: center; }
+    #proxy-img { height: 25px; width: auto; margin-right: 10px; }
+    #beta-text { font-size: 16px; font-weight: bold; color: #333; margin-right: 10px; }
+    #address-input {
+      width: 600px; padding: 2px; font-size: 16px; margin-right: 4px;
+    }
+    #go-button, #help-button, #back-button, #forward-button, #refresh-button {
+      padding: 2px 8px; font-size: 14px; cursor: pointer; margin-right: 4px;
+    }
+    #right-bar { display: flex; align-items: center; }
+    #status-text { margin: 0 10px; font-size: 14px; }
+    #loading-img { height: 25px; width: auto; display: none; margin-right: 10px; }
+    #iframe-container {
+      position: fixed; top: 30px; left: 0;
+      width: 100%; height: calc(100% - 30px); z-index: 1000;
+    }
+    iframe { width: 100%; height: 100%; border: none; }
+  </style>
 </head>
 
 <body>
 
-    <!-- Top Bar -->
-    <div id="top-bar">
-        <div id="left-bar">
-            <img id="proxy-img" src="/images/Proxy.png" alt="Proxy Logo">
-            <div id="beta-text">BETA</div>
-            <input id="address-input" type="text" placeholder="Enter URL" />
-            <button id="go-button" type="button" onclick="go()">Go</button>
-            <button id="help-button" type="button" onclick="window.location.href='help.html'">Help</button>
-        </div>
-        <div id="right-bar">
-            <span id="status-text">Ready</span>
-            <img id="loading-img" src="/images/proxyloading.svg" alt="Loading Animation">
-        </div>
+  <!-- Top Bar -->
+  <div id="top-bar">
+    <div id="left-bar">
+      <img id="proxy-img" src="/images/Proxy.png" alt="Proxy Logo">
+      <div id="beta-text">BETA: very unreliable</div>
+      <input id="address-input" type="text" placeholder="Enter URL" />
+      <button id="go-button" type="button" onclick="go()">Go</button>
+      <button id="help-button" type="button" onclick="window.location.href='help.html'">Help</button>
     </div>
-
-    <!-- Iframe Container -->
-    <div id="iframe-container">
-        <iframe id="uv-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-storage-access-by-user-activation" data-tab-id="1" class="active" onload="onIframeLoad()"></iframe>
+    <div id="right-bar">
+      <img id="loading-img" src="/images/proxyloading.svg" alt="Loading Animation">
+      <button id="back-button" type="button" onclick="goBack()">←</button>
+      <button id="forward-button" type="button" onclick="goForward()">→</button>
+      <button id="refresh-button" type="button" onclick="refreshIframe()">⟳</button>
+      <span id="status-text">Ready</span>
     </div>
+  </div>
 
-    <script>
-	
-        // Triggered by Go button: encodes URL, updates iframe and URL hash (not susceptible to sql injection trust me bro)
-        function go() {
-		const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
-		    const inputField = document.getElementById('address-input');
-            let raw = inputField.value.trim();
-            if (!raw) return;
-		
-			// ensure ServiceWorker is working like a serviceWORKER should do (bruh i got so frustrated when it didnt work) 
-			try {
-				registerSW();
-					} catch (err) {
-					error.textContent = "Failed to register service worker.";
-					// errorCode.textContent = err.toString();
-					throw err;
-				}
-		
-			// Ensure URL scheme
-			const url = raw.startsWith('http') ? raw : `https://${raw}`;
-		
-			let frame = document.getElementById("uv-frame");
-				frame.style.display = "block";
-				let wispUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/wisp/";
-				if (connection.getTransport() !== "/epoxy/index.mjs") {
-					connection.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
-				}
-				const finalUrl = __uv$config.prefix + __uv$config.encodeUrl(url);
-				displayIframe(finalUrl);
-				// window.location.hash = encoded; //this was part of "Load from hash on startup"
+  <!-- Iframe Container -->
+  <div id="iframe-container">
+    <iframe
+      id="uv-frame"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-pointer-lock allow-modals allow-orientation-lock allow-presentation allow-storage-access-by-user-activation"
+      data-tab-id="1"
+      class="active"
+      onload="onIframeLoad()"
+    ></iframe>
+  </div>
 
+  <script>
+    // encode via UV config
+    function encodeXor(input) {
+      if (!input) return input;
+      return encodeURIComponent(
+        input.split('').map((c,i) =>
+          i % 2 ? String.fromCharCode(c.charCodeAt(0) ^ 2) : c
+        ).join('')
+      );
+    }
 
-            // Show loading
-            showLoading();
-            setStatus('Loading...');
+    async function go() {
+      const inputField = document.getElementById('address-input');
+      let raw = inputField.value.trim();
+      if (!raw) return;
+      const url = raw.startsWith('http') ? raw : `https://${raw}`;
 
+      // register SW if needed
+      try { registerSW(); }
+      catch (err) { setStatus('SW failed'); throw err; }
 
-            // Clear input
-            inputField.value = '';
-        } // <--- Few! we exited the unreliable zone!
+      showLoading(); setStatus('Loading…');
+      inputField.value = '';
 
-        // Sets iframe src
-        function displayIframe(url) {
-            document.getElementById('uv-frame').src = url;
-        }
+      // encode & proxy via UV
+      const encoded = encodeXor(url);
+      const finalUrl = __uv$config.prefix + encoded;
+      displayIframe(finalUrl);
+    }
 
-        // Hides loading animation and updates status
-        function onIframeLoad() {
-            hideLoading();
-            setStatus('Ready');
-        }
+    function displayIframe(url) {
+      document.getElementById('uv-frame').src = url;
+    }
 
-        // Show loading spinner
-        function showLoading() {
-            document.getElementById('loading-img').style.display = 'block';
-        }
+    function onIframeLoad() {
+      hideLoading();
+      setStatus('Ready');
+      // sync address bar to the iframe’s current URL
+      try {
+        const current = document.getElementById('uv-frame').contentWindow.location.href;
+        document.getElementById('address-input').value = current;
+      } catch (e) {
+        // fallback if any issue reading href
+        document.getElementById('address-input').value = document.getElementById('uv-frame').src;
+      }
+    }
 
-        // Hide loading spinner
-        function hideLoading() {
-            document.getElementById('loading-img').style.display = 'none';
-        }
+    function goBack() {
+      const fw = document.getElementById('uv-frame').contentWindow;
+      fw.history.back();
+    }
+    function goForward() {
+      const fw = document.getElementById('uv-frame').contentWindow;
+      fw.history.forward();
+    }
+    function refreshIframe() {
+      const frame = document.getElementById('uv-frame');
+      frame.contentWindow.location.reload();
+    }
 
-        // Update status text
-        function setStatus(text) {
-            document.getElementById('status-text').textContent = text;
-        }
-
-        // Load from hash on startup
-        //window.addEventListener('load', () => {
-        //    registerServiceWorker();
-        //    const hash = window.location.hash.slice(1);
-        //    if (hash) {
-        //        const url = __uv$config.prefix + hash;
-        //        displayIframe(url);
-        //    }
-        //});
-
-        // Handle hash change (back/forward navigation)
-        window.addEventListener('hashchange', () => {
-            const hash = window.location.hash.slice(1);
-            if (hash) displayIframe(__uv$config.prefix + hash);
-        });
-    </script>
+    function showLoading() {
+      document.getElementById('loading-img').style.display = 'block';
+    }
+    function hideLoading() {
+      document.getElementById('loading-img').style.display = 'none';
+    }
+    function setStatus(text) {
+      document.getElementById('status-text').textContent = text;
+    }
+  </script>
 </body>
 </html>
