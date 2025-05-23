@@ -76,7 +76,7 @@
   </div>
 
   <!-- System Processing -->
-<div class="window is-bright" id="sw-loading" role="dialog" aria-labelledby="dialog-title" style="display: none;">
+<<div class="window active is-bright" id="dialog-demo" role="dialog" aria-labelledby="dialog-title">
   <div class="title-bar">
     <div class="title-bar-text" id="dialog-title">Register Service Worker</div>
     <div class="title-bar-controls">
@@ -93,12 +93,12 @@
 <script>
     // Triggered by Go button: encodes URL, updates iframe and URL hash (not susceptible to sql injection trust me bro)
     function go() {
-	  //Show System Processing
+	  //Show System Processing  
   const swDialog = document.getElementById('sw-loading');
   if (swDialog) {
-    swDialog.style.display = 'flex';
-    swDialog.classList.add('active');
-  }
+    swDialog.style.opacity = '1';
+    swDialog.style.visibility = 'visible';
+	}
 	  
 	const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
 		const inputField = document.getElementById('address-input');
