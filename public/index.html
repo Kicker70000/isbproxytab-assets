@@ -16,7 +16,7 @@
   <script src="register-sw.js" defer></script>
 
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; }
+    body { margin: 0; font-family: Arial, sans-serif;}
     #top-bar {
       position: fixed; top: 0; left: 0; right: 0; height: 25px;
       background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -25,7 +25,7 @@
     }
     #left-bar { display: flex; align-items: center; flex-grow: 1 }
     #proxy-img { height: 25px; width: auto; margin-right: 2px; }
-    #beta-text { font-size: 16px; font-weight: bold; color: #333; margin-right: 10px; }
+    #beta-text { font-size: 16px; font-weight: bold; color: #333; margin-right: 2px; }
     #address-input {
       width: 30%; padding: 2px; font-size: 16px; margin-right: 2px; flex: 1 1 0; min-width: 0; max-width: auto;
     }
@@ -33,8 +33,8 @@
       padding: 0px 5px; font-size: 14px; margin-right: 2px; min-width: 25px;
     }
     #right-bar { display: flex; align-items: center; }
-    #status-text { margin: 0 5px; font-size: 14px; }
-    #loading-img { height: 20px; width: auto; display: none; margin-right: 10px; }
+    #status-text { margin: 0 2px; font-size: 14px; }
+    #loading-img { height: 20px; width: auto; display: none; }
     #iframe-container {
       position: fixed; top: 25px; left: 0;
       width: 100%; height: calc(100% - 30px); z-index: 1000;
@@ -75,9 +75,25 @@
     ></iframe>
   </div>
 
+  <!-- System Processing -->
+<div class="window active is-bright" id="dialog-demo" role="dialog" aria-labelledby="dialog-title">
+  <div class="title-bar">
+    <div class="title-bar-text" id="dialog-title">Register Service Worker</div>
+    <div class="title-bar-controls">
+      <button aria-label="Close" onclick=""></button>
+    </div>
+  </div>
+  <div class="window-body has-space">
+    <h2 class="instruction instruction-primary">System Processing</h2>
+    <div role="progressbar" class="marquee"></div>
+  </div>
+</div>
+
+
 <script>
     // Triggered by Go button: encodes URL, updates iframe and URL hash (not susceptible to sql injection trust me bro)
     function go() {
+	href="#dialog-demo"
 	const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
 		const inputField = document.getElementById('address-input');
         let raw = inputField.value.trim();
