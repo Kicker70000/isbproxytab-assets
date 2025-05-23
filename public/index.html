@@ -94,7 +94,7 @@
     // Triggered by Go button: encodes URL, updates iframe and URL hash (not susceptible to sql injection trust me bro)
     function go() {
 	  //Show System Processing
-		document.getElementById('sw-loading').style.display = 'block';
+		document.getElementById('sw-loading').style.visibility = 'visible';
 	  
 	const connection = new BareMux.BareMuxConnection("/baremux/worker.js")
 		const inputField = document.getElementById('address-input');
