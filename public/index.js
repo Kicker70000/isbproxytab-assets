@@ -1,4 +1,4 @@
-// Triggered by Go button: encodes URL, updates iframe and URL hash (not susceptible to sql injection trust me bro)
+// Triggered by Go button: Shows "System Processing", registers service worker, encodes URL, updates iframe and goes to site (not susceptible to sql injection trust me bro)
 function go() {
     //Show System Processing  
 	window.location.href = "#dialog-swloading";
@@ -45,9 +45,15 @@ function go() {
 } // <--- Few! we exited the unreliable zone!
 
 // When iFrame is finished loading
-function onIframeLoad() {
+function onloadstop() {
 	hideLoading();
 	setStatus('Ready');
+}
+
+// When iFrame starts to load content
+function onloadstart() {
+	setStatus('Loading... (status kinda broken rn ^_^)');
+	showLoading();
 }
 		
 // Back Button
@@ -62,7 +68,7 @@ function goForward() {
 	fw.history.forward();
 }
 		
-//Refresh Button
+// Refresh Button
 function refreshIframe() {
 	const frame = document.getElementById('uv-frame');
 	frame.contentWindow.location.reload();
@@ -81,4 +87,16 @@ function hideLoading() {
 // Update status text
 function setStatus(text) {
     document.getElementById('status-text').textContent = text;
+}
+
+//
+//	DEBUGGING FROM NOW ON!
+//
+
+
+
+// Show error screen
+function showError(reason, description) {
+	document.getElementById('ErrorReason').textContent = reason;
+	document.getElementById('ErrorDescription').textContent = description;
 }
